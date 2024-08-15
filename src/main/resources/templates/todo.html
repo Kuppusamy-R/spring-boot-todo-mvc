@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:c="https://jakarta.ee/xml/ns/jakartaee">
+<head>
+  <title>To-Do List</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+  <script type="text/javascript">
+    const socket = new SockJS('/ws');
+    const stompClient = Stomp.over(socket);
+
+    stompClient.connect({}, function (frame) {
+      stompClient.subscribe('/user/topic/force-logout', function (message) {
+        alert('You have been logged out due to a new login.');
+        window.location.href = '/logout';
+      });
+    });
+  </script>
+</head>
+<body>
+<div th:insert="fragments/header::header"></div>
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <div th:if="${message}" class="alert alert-info" th:text="${message}"></div>
+
+      <div th:if="${param.deletionError}" class="alert alert-danger mt-3">
+        Todo not found!
+      </div>
+      <form th:action="@{/todo}" method="post">
+        <div class="input-group mb-3">
+          <input type="text" class="form-control" placeholder="New Task" name="task" required>
+          <div class="input-group-append">
+            <button class="btn btn-primary" type="submit">Add</button>
+          </div>
+        </div>
+      </form>
+      <ul class="list-group">
+        <li class="list-group-item" th:each="todo : ${todos}">
+          <span th:text="${todo.task}"></span>
+          <form th:action="@{/todo/delete}" method="post" style="display:inline;">
+            <input type="hidden" th:value="${todo.id}" name="id">
+            <button type="submit" class="btn btn-danger btn-sm float-right">Delete</button>
+          </form>
+        </li>
+      </ul>
+      <a href="/api/report/download" class="btn btn-info btn-block mt-3">Download CSV Report</a>
+      <a href="/login?logout" class="btn btn-secondary btn-block mt-3">Logout</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>
